@@ -1,0 +1,42 @@
+name: PowerPlus daily Instagram post
+
+on:
+  schedule:
+    # Toronto is EDT (UTC-4) for the whole campaign (Jul-Aug), so 10:00 AM = 14:00 UTC.
+    # Two slots for resilience: GitHub cron can be delayed/skipped. The second run
+    # sees today's poster already in posted.log and skips it (no double-post).
+    - cron: '0 14 * * *'   # 10:00 AM Toronto (primary)
+    - cron: '0 15 * * *'   # 11:00 AM Toronto (backup if the 10:00 slot was skipped)
+  workflow_dispatch: {}     # manual trigger for testing
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ig-daily-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Publish today's scheduled poster
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: python3 pipeline/publish.py
+      - name: Persist logs (posted.log / run.log)
+        run: |
+          if [[ -n "$(git status --porcelain pipeline/posted.log pipeline/run.log)" ]]; then
+            git config user.name "powerplus-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git pull --rebase --autostash origin main || true
+            git add pipeline/posted.log pipeline/run.log
+            git commit -m "log: daily post update [skip ci]"
+            git push
+          else
+            echo "No log changes to persist."
+          fi
