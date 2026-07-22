@@ -42,11 +42,11 @@ jobs:
           fi
       - name: Persist logs (posted.log / run.log)
         run: |
-          if [[ -n "$(git status --porcelain pipeline/posted.log pipeline/run.log)" ]]; then
+          if [[ -n "$(git status --porcelain pipeline/posted.log)" ]]; then
             git config user.name "powerplus-bot"
             git config user.email "actions@users.noreply.github.com"
             git pull --rebase --autostash origin main || true
-            git add pipeline/posted.log pipeline/run.log
+            git add pipeline/posted.log
             git commit -m "log: daily post update [skip ci]"
             git push
           else
