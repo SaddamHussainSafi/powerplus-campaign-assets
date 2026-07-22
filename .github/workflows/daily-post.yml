@@ -5,8 +5,10 @@ on:
     # Toronto is EDT (UTC-4) for the whole campaign (Jul-Aug), so 10:00 AM = 14:00 UTC.
     # Two slots for resilience: GitHub cron can be delayed/skipped. The second run
     # sees today's poster already in posted.log and skips it (no double-post).
-    - cron: '0 14 * * *'   # 10:00 AM Toronto (primary)
-    - cron: '0 15 * * *'   # 11:00 AM Toronto (backup if the 10:00 slot was skipped)
+    - cron: '0 14 * * *'    # 10:00 AM Toronto (primary)
+    - cron: '20 14 * * *'   # 10:20 retry
+    - cron: '40 14 * * *'   # 10:40 retry
+    - cron: '0 15 * * *'    # 11:00 retry (all guarded by posted.log + concurrency lock)
   workflow_dispatch:
     inputs:
       poster:
