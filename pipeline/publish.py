@@ -90,8 +90,8 @@ def poster_due_today():
     return None
 
 
-def publish(n, dry=False):
-    if already_posted(n):
+def publish(n, dry=False, force=False):
+    if already_posted(n) and not force:
         log(f"poster {n}: already posted — skipping (duplicate guard)")
         return
     entry = CAPTIONS.get(str(n))
@@ -130,10 +130,12 @@ def publish(n, dry=False):
 
 
 if __name__ == "__main__":
-    args = [a for a in sys.argv[1:] if a != "--dry"]
+    flags = {"--dry", "--force"}
+    args = [a for a in sys.argv[1:] if a not in flags]
     dry = "--dry" in sys.argv
+    force = "--force" in sys.argv
     if args:
-        publish(int(args[0]), dry=dry)
+        publish(int(args[0]), dry=dry, force=force)
     else:
         n = poster_due_today()
-        log("no poster scheduled for today — nothing to do") if n is None else publish(n, dry=dry)
+        log("no poster scheduled for today — nothing to do") if n is None else publish(n, dry=dry, force=force)

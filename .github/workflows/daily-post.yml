@@ -7,7 +7,12 @@ on:
     # sees today's poster already in posted.log and skips it (no double-post).
     - cron: '0 14 * * *'   # 10:00 AM Toronto (primary)
     - cron: '0 15 * * *'   # 11:00 AM Toronto (backup if the 10:00 slot was skipped)
-  workflow_dispatch: {}     # manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      poster:
+        description: 'Force a specific poster number (blank = today scheduled). Re-posts even if already posted.'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -24,10 +29,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Publish today's scheduled poster
+      - name: Publish poster
         env:
           IG_TOKEN: ${{ secrets.IG_TOKEN }}
-        run: python3 pipeline/publish.py
+          FORCE_POSTER: ${{ github.event.inputs.poster }}
+        run: |
+          if [ -n "$FORCE_POSTER" ]; then
+            echo "Forcing poster $FORCE_POSTER"
+            python3 pipeline/publish.py --force "$FORCE_POSTER"
+          else
+            python3 pipeline/publish.py
+          fi
       - name: Persist logs (posted.log / run.log)
         run: |
           if [[ -n "$(git status --porcelain pipeline/posted.log pipeline/run.log)" ]]; then
