@@ -15,6 +15,10 @@ on:
         description: 'Force a specific poster number (blank = today scheduled). Re-posts even if already posted.'
         required: false
         default: ''
+      dry:
+        description: 'true = build container only, do NOT publish (token test)'
+        required: false
+        default: 'false'
 
 permissions:
   contents: write
@@ -36,11 +40,12 @@ jobs:
           IG_TOKEN: ${{ secrets.IG_2_TOKEN }}
           FORCE_POSTER: ${{ github.event.inputs.poster }}
         run: |
+          ARGS=""
+          [ "${{ github.event.inputs.dry }}" = "true" ] && ARGS="--dry"
           if [ -n "$FORCE_POSTER" ]; then
-            echo "Forcing poster $FORCE_POSTER"
-            python3 pipeline/publish.py --force "$FORCE_POSTER"
+            python3 pipeline/publish.py --force $ARGS "$FORCE_POSTER"
           else
-            python3 pipeline/publish.py
+            python3 pipeline/publish.py $ARGS
           fi
       - name: Persist logs (posted.log / run.log)
         run: |
