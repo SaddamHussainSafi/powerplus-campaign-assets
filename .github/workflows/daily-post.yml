@@ -33,7 +33,7 @@ jobs:
           python-version: '3.11'
       - name: Publish poster
         env:
-          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IG_TOKEN: ${{ secrets.IG_2_TOKEN }}
           FORCE_POSTER: ${{ github.event.inputs.poster }}
         run: |
           if [ -n "$FORCE_POSTER" ]; then
